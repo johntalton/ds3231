@@ -30,7 +30,7 @@ export class CommonBuilder {
 	static from(definition) {
 		const funcs = Object.entries(definition.registers)
 			.map(([name, regDef]) => {
-				const funcName = 'get' + name.replace(' ', '')
+				const funcName = 'get' + name.replace(' /', '')
 
 				const converter = (buffer) => {
 					return Object.entries(regDef.fields)

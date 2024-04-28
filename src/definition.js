@@ -108,11 +108,20 @@ export const DEFINITION = {
 		},
 		'MSB of Temp': {
 			address: 0x11,
-			default: 0x00
+			default: 0x00,
+			fields: {
+				'MSB': { offset: 7, length: 8}
+			}
 		},
 		'LSB of Temp': {
 			address: 0x12,
-			default: 0x00
+			default: 0x00,
+			fields: {
+				'LSB': { offset: 7, length: 2 }
+			}
 		}
+	},
+	blocks: {
+		'Temperature': { address: 0x11, length: 2 }
 	}
 }

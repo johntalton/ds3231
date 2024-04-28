@@ -1,5 +1,6 @@
 import { CommonBuilder } from './builder.js'
 import { DEFINITION } from './definition.js'
+import { Common } from './common.js'
 
 export const DEFAULT_ADDRESS = 0x68
 
@@ -19,7 +20,7 @@ export class DS3231 {
 
 
 	async setTime(time) { return this.#common.setTime(this.#aBus, time) }
-	async getTime() { return this.#common.getTime(this.#aBus) }
+	async getTime() { return Common.getTime(this.#aBus) }
 
 	async setAlarm1() {}
 	async getAlarm1() {}
@@ -27,14 +28,16 @@ export class DS3231 {
 	async setAlarm2() {}
 	async getAlarm2() {}
 
-	async getControl() {}
-	async setControl() {}
+	/** @param {ControlProfile} control  */
+	async setControl(control) { return this.#common.setControl(this.#aBus, control) }
+	async getControl() { return Common.getControl(this.#aBus) }
 
-	async getStatus() {}
-	async setStatus() {}
+	/** @param {StatusProfile} status  */
+	async setStatus(status) { return Common.setStatus(this.#aBus, status) }
+	async getStatus() { return Common.getStatus(this.#aBus) }
 
-	async getAgingOffset() {}
 	async setAgingOffset() {}
+	async getAgingOffset() {}
 
-	async getTemperature() {}
+	async getTemperature() { return Common.getTemperature(this.#aBus) }
 }
