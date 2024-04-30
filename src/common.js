@@ -14,9 +14,23 @@ export class Common {
   }
 
   /** @param {I2CAddressedBus} aBus */
+  /** @param {TimeProfile} time  */
+  static async setTime(aBus, time) {
+    const buffer = Converter.encodeTime(time)
+    return aBus.writeI2cBlock(0x00, buffer)
+  }
+
+  /** @param {I2CAddressedBus} aBus */
   static async getControl(aBus) {
     const buffer = await aBus.readI2cBlock(0x0E, 1)
     return Converter.decodeControl(buffer)
+  }
+
+/** @param {I2CAddressedBus} aBus */
+  /** @param {ControlProfile} control  */
+  static async setControl(aBus, control) {
+    const buffer = Converter.encodeControl(control)
+    return aBus.writeI2cBlock(0x0E, buffer)
   }
 
   /** @param {I2CAddressedBus} aBus */
