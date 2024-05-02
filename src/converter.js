@@ -1,7 +1,18 @@
-import { BitSmush } from "@johntalton/bitsmush"
+import { BitSmush } from '@johntalton/bitsmush'
+
+import {
+	REGISTER_BLOCKS,
+	TEMPERATURE_DEGREE_PER_LSB,
+	FREQUENCIES_KHZ,
+	BIT_SET, BIT_UNSET,
+	LENGTH_ONE_BYTE
+} from './defs.js'
+
+export const TEN = 10
+export const TWELVE = 12
+export const TWENTY = 20
 
 export class Converter {
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeTemperature(buffer) {
 		const dv = ArrayBuffer.isView(buffer) ?
 			new DataView(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -10,7 +21,7 @@ export class Converter {
 		const msb = dv.getInt8(0)
 		const lsb = dv.getUint8(1)
 
-		const temperatureC = msb + ((lsb >> 6) * 0.25)
+		const temperatureC = msb + ((lsb >> 6) * TEMPERATURE_DEGREE_PER_LSB)
 
 		return { temperatureC }
 	}
@@ -23,7 +34,7 @@ export class Converter {
 		const tens = BitSmush.extractBits(u8[0], 6, 3)
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
-		return { seconds: tens * 10 + ones }
+		return { seconds: (tens * TEN) + ones }
 	}
 
 	static decodeMinutes(buffer) {
@@ -34,32 +45,30 @@ export class Converter {
 		const tens = BitSmush.extractBits(u8[0], 6, 3)
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
-		return { minutes: tens * 10 + ones }
+		return { minutes: (tens * TEN) + ones }
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeHours(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
 			new Uint8Array(buffer)
 
 		const twelveTwentyFour = BitSmush.extractBits(u8[0], 6, 1)
-		const twelveHourMode = twelveTwentyFour === 1
+		const twelveHourMode = twelveTwentyFour === BIT_SET
 		const amPmTwenty = BitSmush.extractBits(u8[0], 5, 1)
-		const pmTwenty = amPmTwenty === 1
+		const pmTwenty = amPmTwenty === BIT_SET
 
-		const twenty = (!twelveHourMode && pmTwenty) ? 20 : 0
+		const twenty = (!twelveHourMode && pmTwenty) ? TWENTY : 0
 		const tens = BitSmush.extractBits(u8[0], 4, 1)
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
 		return {
 			twelveHourMode,
-			hours: twenty + (tens * 10) + ones,
+			hours: twenty + (tens * TEN) + ones,
 			pm: pmTwenty
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeDay(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -72,7 +81,6 @@ export class Converter {
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeDate(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -82,11 +90,10 @@ export class Converter {
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
 		return {
-			date: (tens * 10) + ones
+			date: (tens * TEN) + ones
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeMonthCentury(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -97,11 +104,11 @@ export class Converter {
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
 		return {
-			month: (tens * 10) + ones,
+			month: (tens * TEN) + ones,
 			century
 		}
 	}
-	/** @param {DataView|ArrayBufferLike} buffer  */
+
 	static decodeYear(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -111,11 +118,10 @@ export class Converter {
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
 		return {
-			year: (tens * 10) + ones
+			year: (tens * TEN) + ones
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeTime(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -140,7 +146,177 @@ export class Converter {
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
+	static decodeAlarm1Seconds(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a1m1 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const seconds = Converter.decodeSeconds(buffer)
+
+		return {
+			a1m1,
+			...seconds
+		}
+	}
+
+	static decodeAlarm1Minutes(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a1m2 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const minutes = Converter.decodeMinutes(buffer)
+
+		return {
+			a1m2,
+			...minutes
+		}
+	}
+
+	static decodeAlarm1Hours(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a1m3 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const hours = Converter.decodeHours(buffer)
+
+		return {
+			a1m3,
+			...hours
+		}
+	}
+
+	static decodeDayDate(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const dydt = BitSmush.extractBits(u8[0], 6, 1)
+		const dayOfWeek = dydt === BIT_SET
+		const dayOfMonth = dydt === BIT_UNSET
+
+		const value = dayOfWeek ?
+			Converter.decodeDay(buffer) :
+			Converter.decodeDate(buffer)
+
+		return {
+			dayOfWeek,
+			dayOfMonth,
+			...value
+		}
+	}
+
+	static decodeAlarm1DayDate(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a1m4 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const dayDate = Converter.decodeDayDate(buffer)
+
+		return {
+			a1m4,
+			...dayDate
+		}
+	}
+
+	static decodeAlarm1(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const seconds = Converter.decodeAlarm1Seconds(u8.subarray(0, 1))
+		const minutes = Converter.decodeAlarm1Minutes(u8.subarray(1, 2))
+		const hours = Converter.decodeAlarm1Hours(u8.subarray(2, 3))
+		const dayDate = Converter.decodeAlarm1DayDate(u8.subarray(3, 4))
+
+		const { a1m1 } = seconds
+		const { a1m2 } = minutes
+		const { a1m3 } = hours
+		const { a1m4 } = dayDate
+
+		const rate = 0
+
+		return {
+			rate,
+			...seconds,
+			...minutes,
+			...hours,
+			...dayDate,
+		}
+	}
+
+	static decodeAlarm2Minutes(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a2m2 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const minutes = Converter.decodeMinutes(buffer)
+
+		return {
+			a2m2,
+			...minutes
+		}
+	}
+
+	static decodeAlarm2Hours(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a2m3 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const hours = Converter.decodeHours(buffer)
+
+		return {
+			a2m3,
+			...hours
+		}
+	}
+
+	static decodeAlarm2DayDate(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const a2m4 = BitSmush.extractBits(u8[0], 7, 1)
+
+		const dayDate = Converter.decodeDayDate(buffer)
+
+		return {
+			a2m4,
+			...dayDate
+		}
+	}
+
+	static decodeAlarm2(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		const rate = 0
+
+		const minutes = Converter.decodeAlarm2Minutes(u8.subarray(0, 1))
+		const hours = Converter.decodeAlarm2Hours(u8.subarray(1, 2))
+		const dayDate = Converter.decodeAlarm2DayDate(u8.subarray(2, 3))
+
+
+		return {
+			rate,
+			...minutes,
+			...hours,
+			...dayDate,
+		}
+	}
+
 	static decodeControl(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -155,23 +331,17 @@ export class Converter {
 		const a2ie = BitSmush.extractBits(u8[0], 1, 1)
 		const a1ie = BitSmush.extractBits(u8[0], 0, 1)
 
-		const FREQUENCIES_KHZ = [
-			[1, 1.024],
-			[4.096, 8.192]
-		]
-
 		return {
-			alarm1Enabled: a1ie === 1,
-			alarm2Enabled: a2ie === 1,
-			convertTemperatureEnabled: conv === 1,
-			squareWaveEnabled: intcn === 0,
-			batteryBackupOscillatorEnabled: eosc === 0,
-			batteryBackupSquareWaveEnabled: bbsqw === 1,
+			alarm1Enabled: a1ie === BIT_SET,
+			alarm2Enabled: a2ie === BIT_SET,
+			convertTemperatureEnabled: conv === BIT_SET,
+			squareWaveEnabled: intcn === BIT_UNSET,
+			batteryBackupOscillatorEnabled: eosc === BIT_UNSET,
+			batteryBackupSquareWaveEnabled: bbsqw === BIT_SET,
 			squareWaveFrequencyKHz: FREQUENCIES_KHZ[rs2][rs1]
 		}
 	}
 
-	/** @param {DataView|ArrayBufferLike} buffer  */
 	static decodeStatus(buffer) {
 		const u8 = ArrayBuffer.isView(buffer) ?
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
@@ -184,121 +354,115 @@ export class Converter {
 		const a1f = BitSmush.extractBits(u8[0], 0, 1)
 
 		return {
-			oscillatorStoppedFlag: osf === 1,
-			output32kHzEnabled: en32kHz === 1,
-			busyFlag: busy === 1,
-			alarm1Flag: a1f === 1,
-			alarm2Flag: a2f === 1
+			oscillatorStoppedFlag: osf === BIT_SET,
+			output32kHzEnabled: en32kHz === BIT_SET,
+			busyFlag: busy === BIT_SET,
+			alarm1Flag: a1f === BIT_SET,
+			alarm2Flag: a2f === BIT_SET
 		}
 	}
 
 	// ---------------------------------------------------------------------------
 
 	static encodeControl(control) {
-		const { enableAlarm1, enabledAlarm2 } = {
-			enableAlarm1: false,
-			enableAlarm2: false,
+		const {
+			enableAlarm1 = false,
+			enableAlarm2 = false,
+			enableOscillatorOnBatteryBackup = true
+		} = control
 
-			enableSquareWave: false,
-			squareWaveFrequencyKHz: 8.192,
+		const a1ie = enableAlarm1 ? BIT_SET : BIT_UNSET
+		const a2ie = enableAlarm2 ? BIT_SET : BIT_UNSET
+		const intcn = BIT_SET
+		const eosc = !enableOscillatorOnBatteryBackup ? BIT_SET : BIT_UNSET
 
-			enableOscillatorOnBattery: false,
-			enableSquareWaveOnBattery: false,
+		const controlByte = BitSmush.smushBits(
+			[[7, 1], [2, 1], [1, 1], [0, 1]],
+			[ eosc, intcn, a2ie, a1ie ])
 
-			triggerTemperatureConversion: false,
-
-			...control
-		}
-		const controlByte = 0
-		return Uint8Array.from([controlByte]).buffer
+		return Uint8Array.from([ controlByte ]).buffer
 	}
 
-	/** @param {StatusProfile} status  */
 	static encodeStatus(status) {
-		const { clearOscillatorStoppedFlag, enable32kHz, clearAlarm1Flag, clearAlarm2Flag } = {
-			clearOscillatorStoppedFlag: false,
-			enable32kHz: false,
-			clearAlarm1Flag: false,
-			clearAlarm2Flag: false,
+		const {
+			clearOscillatorStoppedFlag = false,
+			enable32kHz = false,
+			clearAlarm1Flag = false,
+			clearAlarm2Flag = false
+		} = status
 
-			...status
-		}
-		const osf = !clearOscillatorStoppedFlag ? 1 : 0
-		const en32kHz = enable32kHz ? 1 : 0
-		const a1 = !clearAlarm1Flag ? 1 : 0
-		const a2 = !clearAlarm2Flag ? 1 : 0
+		const osf = !clearOscillatorStoppedFlag ? BIT_SET : BIT_UNSET
+		const en32kHz = enable32kHz ? BIT_SET : BIT_UNSET
+		const a1 = !clearAlarm1Flag ? BIT_SET : BIT_UNSET
+		const a2 = !clearAlarm2Flag ? BIT_SET : BIT_UNSET
 
-		const statusByte = (osf << 7) | (en32kHz << 3) | (a1 << 1) | (a2)
+		const statusByte = BitSmush.smushBits(
+			[[7, 1], [3, 1], [1, 1], [0, 1]],
+			[osf, en32kHz, a1, a2]
+		)
 
-		return Uint8Array.from([statusByte]).buffer
+		return Uint8Array.from([ statusByte ]).buffer
 	}
 
-	/** @param {Number} seconds */
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeSeconds(seconds, into) {
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 1) :
-			new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(seconds / 10)
-		const ones = seconds % 10
+		const tens = Math.floor(seconds / TEN)
+		const ones = seconds % TEN
 
 		buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
 
 		return buffer.buffer
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeMinutes(minutes, into) {
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 1) :
-			new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(minutes / 10)
-		const ones = minutes % 10
+		const tens = Math.floor(minutes / TEN)
+		const ones = minutes % TEN
 
 		buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
 
 		return buffer.buffer
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeHours(hours, twelveHourMode, into) {
-		function _encodeHoursAMPM(hours) {
-			const pmTwenty = (hours >= 12)
-			const twelveTwentyFour = 1
-			const amPmTwenty = pmTwenty ? 1 : 0
+		function _encodeHoursAmPm(hours) {
+			const pmTwenty = (hours >= TWELVE)
+			const twelveTwentyFour = BIT_SET
+			const amPmTwenty = pmTwenty ? BIT_SET : BIT_UNSET
 
-			const remainingHours = pmTwenty ? hours - 12 : hours
+			const remainingHours = pmTwenty ? hours - TWELVE : hours
 
-			const tens = Math.floor(remainingHours / 10)
-			const ones = remainingHours % 10
+			const tens = Math.floor(remainingHours / TEN)
+			const ones = remainingHours % TEN
 
 			return [twelveTwentyFour, amPmTwenty, tens, ones]
 		}
 
 		function _encodeHours24(hours) {
-			const pmTwenty = (hours >= 20)
-			const twelveTwentyFour = 0
-			const amPmTwenty = pmTwenty ? 1 : 0
+			const pmTwenty = (hours >= TWENTY)
+			const twelveTwentyFour = BIT_UNSET
+			const amPmTwenty = pmTwenty ? BIT_SET : BIT_UNSET
 
-			const remainingHours = pmTwenty ? hours - 20 : hours
+			const remainingHours = pmTwenty ? hours - TWENTY : hours
 
-			const tens = Math.floor(remainingHours / 10)
-			const ones = remainingHours % 10
+			const tens = Math.floor(remainingHours / TEN)
+			const ones = remainingHours % TEN
 
 			return [twelveTwentyFour, amPmTwenty, tens, ones]
 		}
 
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 1) :
-			new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
 		const result = twelveHourMode ?
-			_encodeHoursAMPM(hours) :
+			_encodeHoursAmPm(hours) :
 			_encodeHours24(hours)
 
 		buffer[0] = BitSmush.smushBits(
@@ -309,71 +473,66 @@ export class Converter {
 	}
 
 	static encodeDay(day, into) {
+		const buffer = (into !== undefined) ?
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
+		// todo
+
+		return buffer.buffer
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeDate(date, into) {
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 1) :
-			new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(date / 10)
-		const ones = date % 10
+		const tens = Math.floor(date / TEN)
+		const ones = date % TEN
 
 		buffer[0] = BitSmush.smushBits([[5, 2], [3, 4]], [tens, ones])
 
 		return buffer.buffer
-
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeMonth(month, into) {
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 1) :
-			new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(month / 10)
-		const ones = month % 10
-
-		console.log(month, tens, ones)
+		const tens = Math.floor(month / TEN)
+		const ones = month % TEN
 
 		buffer[0] = BitSmush.smushBits([[4, 1], [3, 4]], [tens, ones])
 
 		return buffer.buffer
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
 	static encodeYear(year, into) {
 		const buffer = (into !== undefined) ?
-		new Uint8Array(into.buffer, into.byteOffset, 1) :
-		new Uint8Array(1)
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(year / 10)
-		const ones = year % 10
+		const tens = Math.floor(year / TEN)
+		const ones = year % TEN
 
 		buffer[0] = BitSmush.smushBits([[7, 4], [3, 4]], [tens, ones])
 
 		return buffer.buffer
 	}
 
-	/** @param {ArrayBufferView|DataView} into */
-	/** @returns {ArrayBufferLike} */
-	static encodeTime(time, into) {
+	static encodeTime(time, twelveHourMode, into) {
 		const { seconds, minutes, hours, day, date, month, year } = time
 
-		const twelveHourMode = false
+		const mode12 = twelveHourMode ?? false
 
 		const buffer = (into !== undefined) ?
-			new Uint8Array(into.buffer, into.byteOffset, 7) :
-			new Uint8Array(7)
+			new Uint8Array(into.buffer, into.byteOffset, REGISTER_BLOCKS.TIME.LENGTH) :
+			new Uint8Array(REGISTER_BLOCKS.TIME.LENGTH)
 
 		Converter.encodeSeconds(seconds, buffer.subarray(0, 1))
 		Converter.encodeMinutes(minutes, buffer.subarray(1, 2))
-		Converter.encodeHours(hours, twelveHourMode, buffer.subarray(2, 3))
+		Converter.encodeHours(hours, mode12, buffer.subarray(2, 3))
 		Converter.encodeDay(day, buffer.subarray(3, 4))
 		Converter.encodeDate(date, buffer.subarray(4, 5))
 		Converter.encodeMonth(month, buffer.subarray(5, 6))

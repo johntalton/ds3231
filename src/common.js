@@ -1,49 +1,81 @@
+import { REGISTERS, REGISTER_BLOCKS, LENGTH_ONE_BYTE } from './defs.js'
 import { Converter } from './converter.js'
 
 export class Common {
-  /** @param {I2CAddressedBus} aBus */
-  static async getTemperature(aBus) {
-    const buffer = await aBus.readI2cBlock(0x11, 2)
-    return Converter.decodeTemperature(buffer)
-  }
-
-  /** @param {I2CAddressedBus} aBus */
   static async getTime(aBus) {
-    const buffer = await aBus.readI2cBlock(0x00, 7)
+    const buffer = await aBus.readI2cBlock(
+      REGISTER_BLOCKS.TIME.START,
+      REGISTER_BLOCKS.TIME.LENGTH
+    )
     return Converter.decodeTime(buffer)
   }
 
-  /** @param {I2CAddressedBus} aBus */
-  /** @param {TimeProfile} time  */
-  static async setTime(aBus, time) {
-    const buffer = Converter.encodeTime(time)
-    return aBus.writeI2cBlock(0x00, buffer)
+  static async setTime(aBus, time, twelveHourMode = false) {
+    const buffer = Converter.encodeTime(time, twelveHourMode)
+    return aBus.writeI2cBlock(REGISTER_BLOCKS.TIME.START, buffer)
   }
 
-  /** @param {I2CAddressedBus} aBus */
+  static async getAlarm1(aBus) {
+    const buffer = await aBus.readI2cBlock(
+      REGISTER_BLOCKS.ALARM_1.START,
+      REGISTER_BLOCKS.ALARM_1.LENGTH
+    )
+    return Converter.decodeAlarm1(buffer)
+  }
+
+  static async setAlarm1(aBus, alarm) {
+    const buffer = Converter.encodeAlarm1(alarm)
+    return aBus.writeI2cBlock(REGISTER_BLOCKS.ALARM_1.START, buffer)
+  }
+
+  static async getAlarm2(aBus) {
+    const buffer = await aBus.readI2cBlock(
+      REGISTER_BLOCKS.ALARM_2.START,
+      REGISTER_BLOCKS.ALARM_2.LENGTH
+    )
+    return Converter.decodeAlarm2(buffer)
+  }
+
+  static async setAlarm2(aBus, alarm) {
+    const buffer = Converter.encodeAlarm2(alarm)
+    return aBus.writeI2cBlock(REGISTER_BLOCKS.ALARM_2.START, buffer)
+  }
+
   static async getControl(aBus) {
-    const buffer = await aBus.readI2cBlock(0x0E, 1)
+    const buffer = await aBus.readI2cBlock(REGISTERS.CONTROL, LENGTH_ONE_BYTE)
     return Converter.decodeControl(buffer)
   }
 
-/** @param {I2CAddressedBus} aBus */
-  /** @param {ControlProfile} control  */
   static async setControl(aBus, control) {
     const buffer = Converter.encodeControl(control)
-    return aBus.writeI2cBlock(0x0E, buffer)
+    return aBus.writeI2cBlock(REGISTERS.CONTROL, buffer)
   }
 
-  /** @param {I2CAddressedBus} aBus */
   static async getStatus(aBus) {
-    const buffer = await aBus.readI2cBlock(0x0F, 1)
+    const buffer = await aBus.readI2cBlock(REGISTERS.CONTROL_STATUS, LENGTH_ONE_BYTE)
     return Converter.decodeStatus(buffer)
   }
 
-  /** @param {I2CAddressedBus} aBus */
-  /** @param {StatusProfile} status  */
   static async setStatus(aBus, status) {
     const buffer = Converter.encodeStatus(status)
-    return aBus.writeI2cBlock(0x0F, buffer)
+    return aBus.writeI2cBlock(REGISTERS.CONTROL_STATUS, buffer)
   }
 
+  static async getAgingOffset(aBus) {
+    const buffer = await aBus.readI2cBlock(REGISTERS.AGING_OFFSET, LENGTH_ONE_BYTE)
+    return Converter.decodeAgingOffset(buffer)
+  }
+
+  static async setAgingOffset(aBus, offset) {
+    const buffer = Converter.encodeAgingOffset(offset)
+    return aBus.writeI2cBlock(REGISTERS.AGING_OFFSET, buffer)
+  }
+
+  static async getTemperature(aBus) {
+    const buffer = await aBus.readI2cBlock(
+      REGISTER_BLOCKS.TEMPERATURE.START,
+      REGISTER_BLOCKS.TEMPERATURE.LENGTH
+    )
+    return Converter.decodeTemperature(buffer)
+  }
 }
