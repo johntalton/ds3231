@@ -152,8 +152,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a1m1 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a1m1 === BIT_SET
 
-		const seconds = Converter.decodeSeconds(buffer)
+		const seconds = any ?
+			{ seconds: null } :
+			Converter.decodeSeconds(buffer)
 
 		return {
 			a1m1,
@@ -167,8 +170,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a1m2 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a1m2 === BIT_SET
 
-		const minutes = Converter.decodeMinutes(buffer)
+		const minutes = any ?
+			{ minutes: null } :
+			Converter.decodeMinutes(buffer)
 
 		return {
 			a1m2,
@@ -236,15 +242,7 @@ export class Converter {
 		const hours = Converter.decodeAlarm1Hours(u8.subarray(2, 3))
 		const dayDate = Converter.decodeAlarm1DayDate(u8.subarray(3, 4))
 
-		const { a1m1 } = seconds
-		const { a1m2 } = minutes
-		const { a1m3 } = hours
-		const { a1m4 } = dayDate
-
-		const rate = 0
-
 		return {
-			rate,
 			...seconds,
 			...minutes,
 			...hours,
@@ -409,10 +407,16 @@ export class Converter {
 			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
 			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(seconds / TEN)
-		const ones = seconds % TEN
+		const any = seconds === null
+		if(any) {
+			buffer[0] = BIT_SET << 7
+		}
+		else {
+			const tens = Math.floor(seconds / TEN)
+			const ones = seconds % TEN
 
-		buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
+			buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
+		}
 
 		return buffer.buffer
 	}
@@ -422,10 +426,15 @@ export class Converter {
 			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
 			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(minutes / TEN)
-		const ones = minutes % TEN
+		const any = minutes === null
+		if(any) {
+			buffer[0] = BIT_SET << 7
+		} else {
+			const tens = Math.floor(minutes / TEN)
+			const ones = minutes % TEN
 
-		buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
+			buffer[0] = BitSmush.smushBits([[6, 3], [3, 4]], [tens, ones])
+		}
 
 		return buffer.buffer
 	}
@@ -461,13 +470,19 @@ export class Converter {
 			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
 			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const result = twelveHourMode ?
-			_encodeHoursAmPm(hours) :
-			_encodeHours24(hours)
+		const any = hours === null
+		if(any) {
+			buffer[0] = BIT_SET << 7
+		}
+		else {
+			const result = twelveHourMode ?
+				_encodeHoursAmPm(hours) :
+				_encodeHours24(hours)
 
-		buffer[0] = BitSmush.smushBits(
-			[[6, 1], [5, 1], [4, 1], [3, 4]],
-			result)
+			buffer[0] = BitSmush.smushBits(
+				[[6, 1], [5, 1], [4, 1], [3, 4]],
+				result)
+		}
 
 		return buffer.buffer
 	}
@@ -487,10 +502,16 @@ export class Converter {
 			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
 			new Uint8Array(LENGTH_ONE_BYTE)
 
-		const tens = Math.floor(date / TEN)
-		const ones = date % TEN
+		const any = date === null
+		if(any) {
+			buffer[0] = BIT_SET << 7
+		}
+		else {
+			const tens = Math.floor(date / TEN)
+			const ones = date % TEN
 
-		buffer[0] = BitSmush.smushBits([[5, 2], [3, 4]], [tens, ones])
+			buffer[0] = BitSmush.smushBits([[5, 2], [3, 4]], [tens, ones])
+		}
 
 		return buffer.buffer
 	}
