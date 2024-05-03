@@ -12,6 +12,9 @@ export const TEN = 10
 export const TWELVE = 12
 export const TWENTY = 20
 
+// set high-bit and zero out remaining
+export const ANY_BYTE_MASK_VALUE = BIT_SET << 7
+
 export class Converter {
 	static decodeTemperature(buffer) {
 		const dv = ArrayBuffer.isView(buffer) ?
@@ -62,10 +65,12 @@ export class Converter {
 		const tens = BitSmush.extractBits(u8[0], 4, 1)
 		const ones = BitSmush.extractBits(u8[0], 3, 4)
 
+		const hours = twenty + (tens * TEN) + ones
+
 		return {
 			twelveHourMode,
-			hours: twenty + (tens * TEN) + ones,
-			pm: pmTwenty
+			hours,
+			pm: twelveHourMode ? pmTwenty : hours > TWELVE
 		}
 	}
 
@@ -409,7 +414,7 @@ export class Converter {
 
 		const any = seconds === null
 		if(any) {
-			buffer[0] = BIT_SET << 7
+			buffer[0] = ANY_BYTE_MASK_VALUE
 		}
 		else {
 			const tens = Math.floor(seconds / TEN)
@@ -428,7 +433,7 @@ export class Converter {
 
 		const any = minutes === null
 		if(any) {
-			buffer[0] = BIT_SET << 7
+			buffer[0] = ANY_BYTE_MASK_VALUE
 		} else {
 			const tens = Math.floor(minutes / TEN)
 			const ones = minutes % TEN
@@ -472,7 +477,7 @@ export class Converter {
 
 		const any = hours === null
 		if(any) {
-			buffer[0] = BIT_SET << 7
+			buffer[0] = ANY_BYTE_MASK_VALUE
 		}
 		else {
 			const result = twelveHourMode ?
@@ -504,7 +509,7 @@ export class Converter {
 
 		const any = date === null
 		if(any) {
-			buffer[0] = BIT_SET << 7
+			buffer[0] = ANY_BYTE_MASK_VALUE
 		}
 		else {
 			const tens = Math.floor(date / TEN)

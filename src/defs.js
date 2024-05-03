@@ -2,6 +2,11 @@
 
 export const DEFAULT_ADDRESS = 0x68
 
+export const CENTURY_NINETEENTH = 1900
+export const CENTURY_TWENTY = 2000
+export const CENTURY_CURRENT = CENTURY_TWENTY
+export const CENTURY = CENTURY_CURRENT
+
 export const TEMPERATURE_DEGREE_PER_LSB = 0.25
 
 // array index are positionally sorted for [rs2][rs1] lookup

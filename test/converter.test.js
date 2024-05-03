@@ -1,0 +1,184 @@
+import { describe, it } from 'mocha'
+import { expect } from 'chai'
+
+import { Converter } from '@johntalton/ds3231'
+
+describe('Converter', () => {
+	describe('Temperature', () => {
+		it('decodeTemperature', () => {
+			const buffer = Uint8Array.from([0x00, 0x01 << 6])
+			const result = Converter.decodeTemperature(buffer)
+			expect(result).to.deep.equal({ temperatureC: .25 })
+		})
+	})
+
+	describe('Time', () => {
+		it('decodeSeconds', () => {
+			const buffer = Uint8Array.from([ 0b0010_0011 ])
+			const { seconds } = Converter.decodeSeconds(buffer)
+			expect(seconds).to.equal(23)
+		})
+
+		it('decodeMinutes', () => {
+			const buffer = Uint8Array.from([ 0b0010_0011 ])
+			const { minutes } = Converter.decodeMinutes(buffer)
+			expect(minutes).to.equal(23)
+		})
+
+		it('decodeHours 12 hour AM', () => {
+			const buffer = Uint8Array.from([ 0b0101_0001 ])
+			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
+			expect(twelveHourMode).to.be.true
+			expect(pm).to.be.false
+			expect(hours).to.equal(11)
+		})
+
+		it('decodeHours 12 hour PM', () => {
+			const buffer = Uint8Array.from([ 0b0111_0001 ])
+			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
+			expect(twelveHourMode).to.be.true
+			expect(pm).to.be.true
+			expect(hours).to.equal(11)
+		})
+
+		it('decodeHours 24 hour', () => {
+			const buffer = Uint8Array.from([ 0b0001_0010 ])
+			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
+			expect(twelveHourMode).to.be.false
+			expect(pm).to.be.false
+			expect(hours).to.equal(12)
+		})
+
+		it('decodeHours 24 hour afternoon', () => {
+			const buffer = Uint8Array.from([ 0b0001_0110 ])
+			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
+			expect(twelveHourMode).to.be.false
+			expect(pm).to.be.true
+			expect(hours).to.equal(16)
+		})
+
+		it('decodeDay', () => {
+			const buffer = Uint8Array.from([ 0b0000_0011 ])
+			const { day } = Converter.decodeDay(buffer)
+			expect(day).to.equal(3)
+		})
+
+		it('decodeDate', () => {
+			const buffer = Uint8Array.from([ 0b0010_0011 ])
+			const { date } = Converter.decodeDate(buffer)
+			expect(date).to.equal(23)
+		})
+
+		it('decodeMonthCentury', () => {
+			const buffer = Uint8Array.from([ 0b0001_0010 ])
+			const { month, century } = Converter.decodeMonthCentury(buffer)
+			expect(month).to.equal(12)
+			expect(century).to.equal(0)
+		})
+
+		it('decodeMonthCentury century flag', () => {
+			const buffer = Uint8Array.from([ 0b1001_0010 ])
+			const { month, century } = Converter.decodeMonthCentury(buffer)
+			expect(month).to.equal(12)
+			expect(century).to.equal(1)
+		})
+
+		it('decodeYear', () => {
+			const buffer = Uint8Array.from([ 0b1001_0011 ])
+			const { year } = Converter.decodeYear(buffer)
+			expect(year).to.equal(93)
+		})
+
+		it('decodesTime', () => {
+			const buffer = Uint8Array.from([
+				0b0010_0011,
+				0b0010_0011,
+				0b0001_0010,
+				0b0000_0011,
+				0b0010_0011,
+				0b1001_0010,
+				0b1001_0011,
+			])
+			const {
+				seconds, minutes, hours, date, month, year, century
+			} = Converter.decodeTime(buffer)
+
+
+			const dateMilli = Date.UTC(
+				2000 + year + (century * 100),
+				month - 1,
+				date,
+				hours, minutes, seconds)
+
+			expect(dateMilli).to.equal(7068083003000)
+			expect(new Date(dateMilli).toISOString()).to.equal('2193-12-23T12:23:23.000Z')
+		})
+	})
+
+	describe('Alarm 1', () => {
+
+	})
+
+	describe('Alarm 2', () => {
+
+	})
+
+	describe('Control / Status', () => {
+		it('decodeControl', () => {
+			const buffer = Uint8Array.from([ 0b1001_1110 ])
+			const {
+				alarm1Enabled,
+				alarm2Enabled,
+				squareWaveEnabled,
+				batteryBackupOscillatorEnabled,
+				batteryBackupSquareWaveEnabled,
+
+				squareWaveFrequencyKHz
+			} = Converter.decodeControl(buffer)
+
+			expect(alarm1Enabled).to.be.false
+			expect(alarm2Enabled).to.be.true
+			expect(squareWaveEnabled).to.be.false
+
+			expect(squareWaveFrequencyKHz).to.equal(8.192)
+		})
+
+		it('decodeStatus', () => {
+			const buffer = Uint8Array.from([ 0b1000_0110 ])
+			const {
+				oscillatorStoppedFlag,
+				output32kHzEnabled,
+				busyFlag,
+				alarm1Flag,
+				alarm2Flag
+			} = Converter.decodeStatus(buffer)
+
+			expect(oscillatorStoppedFlag).to.be.true
+			expect(output32kHzEnabled).to.be.false
+			expect(busyFlag).to.be.true
+			expect(alarm1Flag).to.be.false
+			expect(alarm2Flag).to.be.true
+		})
+
+		it('encodeControl', () => {
+			const buffer = Converter.encodeControl({
+				enableAlarm2: true
+			})
+			expect(buffer).to.be.instanceOf(ArrayBuffer)
+			expect(buffer.byteLength).to.equal(1)
+			const result = new Uint8Array(buffer)
+			expect(result[0]).to.equal(0b0000_0110)
+		})
+
+		it('encodeStatus', () => {
+			const buffer = Converter.encodeStatus({
+				clearOscillatorStoppedFlag: false,
+				clearAlarm1Flag: true
+			})
+			expect(buffer).to.be.instanceOf(ArrayBuffer)
+			expect(buffer.byteLength).to.equal(1)
+			const result = new Uint8Array(buffer)
+			expect(result[0]).to.equal(0b1000_0001)
+		})
+	})
+})

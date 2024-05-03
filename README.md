@@ -13,19 +13,91 @@ Real Time Clock I²C driver library.
 [![Package Quality](https://npm.packagequality.com/shield/%40johntalton%2Fds3231.svg)](https://packagequality.com/#?package=@johntalton/ds3231)
 
 
-# Example
+# API
+
+### `from`
 
 ```javascript
-import { DS3231 } from '@johntalton/ds3231'
+import { DS3231, CENTURY } from '@johntalton/ds3231'
 
 const bus = /* byob */
 const aBus = new I2CAddressedBus(bus)
 const device = DS3231.from(aBus)
 
+```
 
-device.setTime(...)
+### `getTime`
+
+```javascript
+const { year, month, date, hours, minutes, seconds } = time
+
+const storedDate = new Date(Date.UTC(
+  CENTURY + year,
+  month - 1,
+  date,
+  hours, minutes, seconds))
+
+console.log(storedDate)
 
 ```
+
+### `getAlarm1`
+
+### `getAlarm2`
+
+### `getControl`
+
+### `getStatus`
+
+Return object has these flags:
+- `oscillatorStoppedFlag`
+- `busyFlag`
+- `alarm1Flag`
+- `alarm2Flag`
+
+as well as a status of the 32kHz output
+- `output32kHzEnabled`
+
+
+### `getAgingOffset`
+
+### `getTemperature`
+
+### `setTime`
+
+Setting the time from an external known source is for useful clock functionality.  The values can be set as desired, but `Date.now()` seem a good choice:
+
+```javascript
+const device = /* ... */
+
+const now = new Date(Date.now())
+
+const seconds = now.getUTCSeconds()
+const minutes = now.getUTCMinutes()
+const hours = now.getUTCHours()
+const date = now.getUTCDate()
+const month = now.getUTCMonth() + 1
+const year = now.getUTCFullYear() - CENTURY
+
+await device.setTime({
+  seconds, minutes, hours, date, month, year
+})
+
+```
+
+### `setAlarm1`
+
+### `setAlarm2`
+
+### `setControl`
+
+Enable the Alarms, toggle Interrupt / Square Wave output, and set backup battery mode for the oscillator and square wave functionality.
+
+### `setStatus`
+
+Useful for clearing the Oscillator stopped flag, or either of the alarm flags
+
+### `setAgingOffset`
 
 
 
