@@ -41,20 +41,6 @@ describe('DS3231', () => {
     })
 	})
 
-	it('getTime', async () => {
-		const bus = bufferBus([ ])
-		const device = DS3231.from(bus)
-		device.setTime({
-      seconds: 37
-    })
-
-    expect(bus.buffer).to.be.instanceOf(ArrayBuffer)
-    const u8 = new Uint8Array(bus.buffer)
-    expect(u8[0]).to.equal(0b0011_0111)
-
-    expect(u8[6]).to.equal(0b0000_0000)
-	})
-
   it('getControl', async () => {
     const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
 		const control = await device.getControl()
@@ -125,13 +111,13 @@ describe('DS3231', () => {
     })
   })
 
-  // it('getAgingOffset', async () => {
-  //   const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
-	// 	const offset = await device.getAgingOffset()
-  //   expect(offset).to.deep.equal({
+  it('getAgingOffset', async () => {
+    const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
+		const offset = await device.getAgingOffset()
+    expect(offset).to.deep.equal({
 
-  //   })
-  // })
+    })
+  })
 
   it('getTemperature', async () => {
     const device = DS3231.from(bufferBus([
@@ -144,4 +130,76 @@ describe('DS3231', () => {
     })
   })
 
+
+  // ----------
+
+  it('setTime', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setTime({
+      seconds: 37
+    })
+
+    expect(bus.buffer).to.be.instanceOf(ArrayBuffer)
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8[0]).to.equal(0b0011_0111)
+
+    expect(u8[6]).to.equal(0b0000_0000)
+	})
+
+  it('setControl', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setControl({
+      enableAlarm1: true,
+      enableAlarm2: false,
+      enableOscillatorOnBatteryBackup: false
+    })
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8[0]).to.equal(0b1000_0101)
+  })
+
+  it('setStatus', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setStatus({
+      clearOscillatorStoppedFlag: true,
+			enable32kHz: true,
+			clearAlarm1Flag: false,
+			clearAlarm2Flag: false
+    })
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8[0]).to.equal(0b0000_1011)
+  })
+
+  it('setAlarm1', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setAlarm1({
+
+    })
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8.byteLength).to.equal(4)
+    expect(u8[0]).to.equal(0b0000_0000)
+    expect(u8[1]).to.equal(0b0000_0000)
+    expect(u8[2]).to.equal(0b0000_0000)
+    expect(u8[3]).to.equal(0b0000_0000)
+  })
+
+  it('setAlarm2', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setAlarm2({
+
+    })
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8.byteLength).to.equal(3)
+    expect(u8[0]).to.equal(0b0000_0000)
+    expect(u8[1]).to.equal(0b0000_0000)
+    expect(u8[2]).to.equal(0b0000_0000)
+  })
 })

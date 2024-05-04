@@ -2,13 +2,15 @@ import pluginJs from '@eslint/js'
 import sec from 'eslint-plugin-security'
 
 export default [
-  pluginJs.configs.recommended,
-  sec.configs.recommended,
+  // sec.configs.recommended,
+  // pluginJs.configs.all,
   {
+    ...pluginJs.configs.all,
+
     files: ['src/*.js'],
     rules: {
       // semi: 'off'
-      // "no-unused-vars": 'error'
+      "no-unused-vars": 'warn',
 
       complexity: ['warn', 5],
 

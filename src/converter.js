@@ -365,6 +365,18 @@ export class Converter {
 		}
 	}
 
+	static decodeAgingOffset(buffer) {
+		const u8 = ArrayBuffer.isView(buffer) ?
+			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Uint8Array(buffer)
+
+		// todo
+
+		return {
+
+		}
+	}
+
 	// ---------------------------------------------------------------------------
 
 	static encodeControl(control) {
@@ -545,6 +557,27 @@ export class Converter {
 		buffer[0] = BitSmush.smushBits([[7, 4], [3, 4]], [tens, ones])
 
 		return buffer.buffer
+	}
+
+	static encodeAlarm1(alarm1, twelveHourMode, into) {
+		const mode12 = twelveHourMode ?? false
+
+		// todo
+
+		return Uint8Array.from([ 0, 0, 0, 0 ]).buffer
+	}
+
+	static encodeAlarm2(alarm2, twelveHourMode, into) {
+		const mode12 = twelveHourMode ?? false
+
+		// todo
+
+		return Uint8Array.from([ 0x00, 0, 0 ]).buffer
+	}
+
+	static encodeAgingOffset(offset) {
+		// todo
+		return Uint8Array.from([ 0x00 ]).buffer
 	}
 
 	static encodeTime(time, twelveHourMode, into) {

@@ -10,6 +10,12 @@ describe('Converter', () => {
 			const result = Converter.decodeTemperature(buffer)
 			expect(result).to.deep.equal({ temperatureC: .25 })
 		})
+
+		it('decodeTemperature buffer', () => {
+			const buffer = Uint8Array.from([0x0A, 0x00 ])
+			const result = Converter.decodeTemperature(buffer.buffer)
+			expect(result).to.deep.equal({ temperatureC: 10 })
+		})
 	})
 
 	describe('Time', () => {
@@ -49,7 +55,13 @@ describe('Converter', () => {
 			expect(buffer[2]).to.equal(0b0001_0011)
 		})
 
-		it('encodesHours 12 hour', () => {
+		it('encodesHours 12 hour AM', () => {
+			const buffer = Converter.encodeHours(9, true)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0100_1001)
+		})
+
+		it('encodesHours 12 hour PM', () => {
 			const buffer = Converter.encodeHours(21, true)
 			const u8 = new Uint8Array(buffer)
 			expect(u8[0]).to.equal(0b0110_1001)
@@ -268,6 +280,26 @@ describe('Converter', () => {
 			expect(squareWaveFrequencyKHz).to.equal(8.192)
 		})
 
+		it('decodeControl buffer', () => {
+			const buffer = Uint8Array.from([ 0b1000_1101 ])
+			const {
+				alarm1Enabled,
+				alarm2Enabled,
+				squareWaveEnabled,
+				batteryBackupOscillatorEnabled,
+				batteryBackupSquareWaveEnabled,
+
+				squareWaveFrequencyKHz
+			} = Converter.decodeControl(buffer.buffer)
+
+			expect(alarm1Enabled).to.be.true
+			expect(alarm2Enabled).to.be.false
+			expect(squareWaveEnabled).to.be.false
+
+			expect(squareWaveFrequencyKHz).to.equal(1.024)
+		})
+
+
 		it('decodeStatus', () => {
 			const buffer = Uint8Array.from([ 0b1000_0110 ])
 			const {
@@ -285,6 +317,24 @@ describe('Converter', () => {
 			expect(alarm2Flag).to.be.true
 		})
 
+		it('decodeStatus buffer', () => {
+			const buffer = Uint8Array.from([ 0b1000_0110 ])
+			const {
+				oscillatorStoppedFlag,
+				output32kHzEnabled,
+				busyFlag,
+				alarm1Flag,
+				alarm2Flag
+			} = Converter.decodeStatus(buffer.buffer)
+
+			expect(oscillatorStoppedFlag).to.be.true
+			expect(output32kHzEnabled).to.be.false
+			expect(busyFlag).to.be.true
+			expect(alarm1Flag).to.be.false
+			expect(alarm2Flag).to.be.true
+		})
+
+
 		it('encodeControl', () => {
 			const buffer = Converter.encodeControl({
 				enableAlarm2: true
@@ -293,6 +343,17 @@ describe('Converter', () => {
 			expect(buffer.byteLength).to.equal(1)
 			const result = new Uint8Array(buffer)
 			expect(result[0]).to.equal(0b0000_0110)
+		})
+
+		it('encodeControl other flags', () => {
+			const buffer = Converter.encodeControl({
+				enableAlarm1: true,
+				enableOscillatorOnBatteryBackup: false
+			})
+			expect(buffer).to.be.instanceOf(ArrayBuffer)
+			expect(buffer.byteLength).to.equal(1)
+			const result = new Uint8Array(buffer)
+			expect(result[0]).to.equal(0b1000_0101)
 		})
 
 		it('encodeStatus', () => {
@@ -304,6 +365,19 @@ describe('Converter', () => {
 			expect(buffer.byteLength).to.equal(1)
 			const result = new Uint8Array(buffer)
 			expect(result[0]).to.equal(0b1000_0001)
+		})
+
+		it('encodeStatus alt flags', () => {
+			const buffer = Converter.encodeStatus({
+				clearOscillatorStoppedFlag: true,
+				clearAlarm1Flag: false,
+				clearAlarm2Flag: true,
+				enable32kHz: true
+			})
+			expect(buffer).to.be.instanceOf(ArrayBuffer)
+			expect(buffer.byteLength).to.equal(1)
+			const result = new Uint8Array(buffer)
+			expect(result[0]).to.equal(0b0000_1010)
 		})
 	})
 })
