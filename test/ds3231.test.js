@@ -54,4 +54,94 @@ describe('DS3231', () => {
 
     expect(u8[6]).to.equal(0b0000_0000)
 	})
+
+  it('getControl', async () => {
+    const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
+		const control = await device.getControl()
+    expect(control).to.deep.equal({
+      alarm1Enabled: false,
+      alarm2Enabled: false,
+      convertTemperatureEnabled: false,
+      squareWaveEnabled: false,
+      batteryBackupOscillatorEnabled: false,
+      batteryBackupSquareWaveEnabled: false,
+      squareWaveFrequencyKHz: 1
+    })
+  })
+
+  it('getStatus', async () => {
+    const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
+		const status = await device.getStatus()
+    expect(status).to.deep.equal({
+      oscillatorStoppedFlag: true,
+      output32kHzEnabled: false,
+      busyFlag: true,
+      alarm1Flag: false,
+      alarm2Flag: false
+    })
+  })
+
+  it('getAlarm1', async () => {
+    const device = DS3231.from(bufferBus([
+      0b1000_0000,
+      0b1000_0000,
+      0b0000_0100
+    ]))
+		const alarm1 = await device.getAlarm1()
+    expect(alarm1).to.deep.equal({
+      a1m1: 1,
+      a1m2: 1,
+      a1m3: 0,
+      a1m4: 0,
+      date: 0,
+      dayOfMonth: true,
+      dayOfWeek: false,
+      hours: 4,
+      minutes: null,
+      pm: false,
+      seconds: null,
+      twelveHourMode: false
+    })
+  })
+
+  it('getAlarm2', async () => {
+    const device = DS3231.from(bufferBus([
+      0b1000_0100,
+      0b0000_0001
+    ]))
+		const alarm2 = await device.getAlarm2()
+    expect(alarm2).to.deep.equal({
+      a2m2: 1,
+      a2m3: 0,
+      a2m4: 0,
+      date: 0,
+      dayOfMonth: true,
+      dayOfWeek: false,
+      hours: 1,
+      minutes: 4,
+      pm: false,
+      rate: 0,
+      twelveHourMode: false
+    })
+  })
+
+  // it('getAgingOffset', async () => {
+  //   const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
+	// 	const offset = await device.getAgingOffset()
+  //   expect(offset).to.deep.equal({
+
+  //   })
+  // })
+
+  it('getTemperature', async () => {
+    const device = DS3231.from(bufferBus([
+      0b0010_0101,
+      0b1100_0000
+    ]))
+		const temperature = await device.getTemperature()
+    expect(temperature).to.deep.equal({
+      temperatureC: 37.75
+    })
+  })
+
 })
