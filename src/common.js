@@ -7,6 +7,7 @@ export class Common {
       REGISTER_BLOCKS.TIME.START,
       REGISTER_BLOCKS.TIME.LENGTH
     )
+
     return Converter.decodeTime(buffer)
   }
 

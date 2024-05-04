@@ -13,6 +13,131 @@ describe('Converter', () => {
 	})
 
 	describe('Time', () => {
+		it('encodesSeconds', () => {
+			const buffer = Converter.encodeSeconds(42)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0100_0010)
+		})
+
+		it('encodesSeconds any', () => {
+			const buffer = Converter.encodeSeconds(null)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b1000_0000)
+		})
+
+		it('encodesSeconds offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeSeconds(13, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0001_0011)
+		})
+
+		it('encodesMinutes', () => {
+			const buffer = Converter.encodeMinutes(37)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0011_0111)
+		})
+
+		it('encodesMinutes any', () => {
+			const buffer = Converter.encodeMinutes(null)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b1000_0000)
+		})
+
+		it('encodesMinutes offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeMinutes(13, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0001_0011)
+		})
+
+		it('encodesHours 12 hour', () => {
+			const buffer = Converter.encodeHours(21, true)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0110_1001)
+		})
+
+		it('encodesHours 12 hour any', () => {
+			const buffer = Converter.encodeHours(null, true)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b1000_0000)
+		})
+
+		it('encodesHours 24 hour', () => {
+			const buffer = Converter.encodeHours(37, false)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0011_0111)
+		})
+
+		it('encodesHours 24 hour any', () => {
+			const buffer = Converter.encodeHours(null, false)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b1000_0000)
+		})
+
+		it('encodesHours 24 hour offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeHours(13, false, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0001_0011)
+		})
+
+		it('encodeDate', () => {
+			const buffer = Converter.encodeDate(37)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0011_0111)
+		})
+
+		it('encodeDate any', () => {
+			const buffer = Converter.encodeDate(null)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b1000_0000)
+		})
+
+		it('encodeDate offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeDate(29, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0010_1001)
+		})
+
+		it('encodeMonth', () => {
+			const buffer = Converter.encodeMonth(10)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0001_0000)
+		})
+
+		it('encodeMonth offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeMonth(11, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0001_0001)
+		})
+
+		it('encodeYear', () => {
+			const buffer = Converter.encodeYear(69)
+			const u8 = new Uint8Array(buffer)
+			expect(u8[0]).to.equal(0b0110_1001)
+		})
+
+		it('encodeYear offset into', () => {
+			const buffer = new Uint8Array(3)
+			Converter.encodeYear(42, buffer.subarray(2, 3))
+			expect(buffer[2]).to.equal(0b0100_0010)
+		})
+
+		it('encodeTime', () => {
+			const buffer = Converter.encodeTime({
+				seconds: 37,
+				minutes: 13,
+				hours: 22,
+				day: 1,
+				date: 11,
+				month: 10,
+				year: 100
+			}, false)
+			const u8 = new Uint8Array(buffer)
+			// expect(u8[0]).to.equal(0b0000_0000)
+			// expect(u8[1]).to.equal(0b0000_0000)
+		})
+
+		// -----
+
 		it('decodeSeconds', () => {
 			const buffer = Uint8Array.from([ 0b0010_0011 ])
 			const { seconds } = Converter.decodeSeconds(buffer)
