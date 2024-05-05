@@ -1,10 +1,13 @@
 {
   "name": "@johntalton/ds3231",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "exports": {
     ".": "./src/index.js"
   },
+  "files": [
+    "src/**/*.js"
+  ],
   "scripts": {
     "lint": "eslint ./src",
     "test": "mocha",
@@ -20,6 +23,6 @@
     "mocha": "^10.4.0"
   },
   "dependencies": {
-    "@johntalton/bitsmush": "^1.0.0"
+    "@johntalton/bitsmush": "^1.0.1"
   }
 }

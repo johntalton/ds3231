@@ -141,9 +141,44 @@ describe('Converter', () => {
 				day: 1,
 				date: 11,
 				month: 10,
-				year: 100
+				year: 91
 			}, false)
 			const u8 = new Uint8Array(buffer)
+			expect(u8.byteLength).to.equal(7)
+			expect(u8[0]).to.equal(0b0011_0111)
+			expect(u8[1]).to.equal(0b0001_0011)
+			expect(u8[2]).to.equal(0b0010_0010)
+			expect(u8[3]).to.equal(0b0000_0001)
+			expect(u8[4]).to.equal(0b0001_0001)
+			expect(u8[5]).to.equal(0b0001_0000)
+			expect(u8[6]).to.equal(0b1001_0001)
+		})
+
+		it('encodeTime offset into', () => {
+			const into = new Uint8Array(30)
+			const buffer = Converter.encodeTime({
+				seconds: 37,
+				minutes: 13,
+				hours: 22,
+				day: 1,
+				date: 11,
+				month: 10,
+				year: 91
+			}, false, into.subarray(3, 11))
+
+			expect(buffer).to.equal(into.buffer)
+			expect(buffer.byteLength).to.equal(30)
+
+			const u8 = new Uint8Array(into.buffer)
+
+			expect(u8[3]).to.equal(0b0011_0111)
+			//
+			//
+			//
+			//
+			//
+			expect(u8[9]).to.equal(0b1001_0001)
+
 			// expect(u8[0]).to.equal(0b0000_0000)
 			// expect(u8[1]).to.equal(0b0000_0000)
 		})

@@ -24,11 +24,10 @@ export class Converter {
 		const msb = dv.getInt8(0)
 		const lsb = dv.getUint8(1)
 
-		const whole = BitSmush.extractBits(msb, 7, 8)
+		const whole = msb
 		const part = BitSmush.extractBits(lsb, 7, 2)
 
 		const temperatureC = whole + (part * TEMPERATURE_DEGREE_PER_LSB)
-		// const temperatureC = msb + ((lsb >> 6) * TEMPERATURE_DEGREE_PER_LSB)
 
 		return { temperatureC }
 	}
@@ -519,12 +518,25 @@ export class Converter {
 		return buffer.buffer
 	}
 
-	static encodeDay(day, into) {
+	static encodeDay(day, flag, into) {
 		const buffer = (into !== undefined) ?
 			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
 			new Uint8Array(LENGTH_ONE_BYTE)
 
-		// todo
+		const any = day === null
+		if(any) {
+			buffer[0] = ANY_BYTE_MASK_VALUE
+		}
+		else {
+			const dydt = flag ? BIT_SET : BIT_UNSET
+			const tens = Math.floor(day / TEN)
+			const ones = day % TEN
+
+			// note that [3, 4] is used for ones in alarm (ignored here)
+			buffer[0] = BitSmush.smushBits([
+				[6, 1], [5, 2], [2, 3]],
+				[dydt, tens, ones])
+		}
 
 		return buffer.buffer
 	}
@@ -574,6 +586,17 @@ export class Converter {
 		return buffer.buffer
 	}
 
+	static encodeDayDate(day, date, into) {
+		const buffer = (into !== undefined) ?
+			new Uint8Array(into.buffer, into.byteOffset, LENGTH_ONE_BYTE) :
+			new Uint8Array(LENGTH_ONE_BYTE)
+
+		if(day !== undefined) { Converter.encodeDay(day, true, buffer) }
+		else if(date !== undefined) { Converter.encodeDate(date, buffer) }
+
+		return buffer.buffer
+	}
+
 	static encodeAlarm1(alarm1, twelveHourMode, into) {
 		const { seconds, minutes, hours, day, date } = alarm1
 
@@ -586,8 +609,7 @@ export class Converter {
 		Converter.encodeSeconds(seconds, buffer.subarray(0, 1))
 		Converter.encodeMinutes(minutes, buffer.subarray(1, 2))
 		Converter.encodeHours(hours, mode12, buffer.subarray(2, 3))
-		if(day !== undefined) { Converter.encodeDay(day, buffer.subarray(3, 4)) }
-		else if(date !== undefined) { Converter.encodeDate(date, buffer.subarray(3, 4)) }
+		Converter.encodeDayDate(day, date, buffer.subarray(3, 4))
 
 		return buffer.buffer
 	}
@@ -603,8 +625,7 @@ export class Converter {
 
 		Converter.encodeMinutes(minutes, buffer.subarray(0, 1))
 		Converter.encodeHours(hours, mode12, buffer.subarray(1, 2))
-		if(day !== undefined) { Converter.encodeDay(day, buffer.subarray(2, 3)) }
-		else if(date !== undefined) { Converter.encodeDate(date, buffer.subarray(2, 3)) }
+		Converter.encodeDayDate(day, date, buffer.subarray(2, 3))
 
 		return buffer.buffer
 	}
@@ -625,7 +646,7 @@ export class Converter {
 		Converter.encodeSeconds(seconds, buffer.subarray(0, 1))
 		Converter.encodeMinutes(minutes, buffer.subarray(1, 2))
 		Converter.encodeHours(hours, mode12, buffer.subarray(2, 3))
-		Converter.encodeDay(day, buffer.subarray(3, 4))
+		Converter.encodeDay(day, false, buffer.subarray(3, 4))
 		Converter.encodeDate(date, buffer.subarray(4, 5))
 		Converter.encodeMonth(month, buffer.subarray(5, 6))
 		Converter.encodeYear(year, buffer.subarray(6, 7))
