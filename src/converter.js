@@ -13,7 +13,7 @@ export const TWELVE = 12
 export const TWENTY = 20
 
 // set high-bit and zero out remaining
-export const ANY_BYTE_MASK_VALUE = BIT_SET << 7
+export const ANY_BYTE_MASK_VALUE = 0b1000_0000
 
 export class Converter {
 	static decodeTemperature(buffer) {
@@ -381,14 +381,14 @@ export class Converter {
 	}
 
 	static decodeAgingOffset(buffer) {
-		const u8 = ArrayBuffer.isView(buffer) ?
-			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
-			new Uint8Array(buffer)
+		const i8 = ArrayBuffer.isView(buffer) ?
+			new Int8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
+			new Int8Array(buffer)
 
-		// todo
+		const offset = i8[0]
 
 		return {
-
+			offset
 		}
 	}
 
@@ -610,8 +610,7 @@ export class Converter {
 	}
 
 	static encodeAgingOffset(offset) {
-		// todo
-		return Uint8Array.from([ 0x00 ]).buffer
+		return Int8Array.from([ offset ]).buffer
 	}
 
 	static encodeTime(time, twelveHourMode, into) {

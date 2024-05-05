@@ -112,10 +112,10 @@ describe('DS3231', () => {
   })
 
   it('getAgingOffset', async () => {
-    const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
+    const device = DS3231.from(bufferBus([ 0b1111_1100 ]))
 		const offset = await device.getAgingOffset()
     expect(offset).to.deep.equal({
-
+      offset: -4
     })
   })
 
@@ -240,5 +240,17 @@ describe('DS3231', () => {
     expect(u8[0]).to.equal(0b0000_0000)
     expect(u8[1]).to.equal(0b0000_0000)
     expect(u8[2]).to.equal(0b0000_0000)
+  })
+
+  it('setAgingOffset', async () => {
+		const bus = bufferBus([ 42 ])
+		const device = DS3231.from(bus)
+		device.setAgingOffset({
+      offset: 42
+    })
+
+    const i8 = new Int8Array(bus.buffer)
+    expect(i8.byteLength).to.equal(1)
+    expect(i8[0]).to.equal(0b0000_0000)
   })
 })
