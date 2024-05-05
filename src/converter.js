@@ -24,7 +24,11 @@ export class Converter {
 		const msb = dv.getInt8(0)
 		const lsb = dv.getUint8(1)
 
-		const temperatureC = msb + ((lsb >> 6) * TEMPERATURE_DEGREE_PER_LSB)
+		const whole = BitSmush.extractBits(msb, 7, 8)
+		const part = BitSmush.extractBits(lsb, 7, 2)
+
+		const temperatureC = whole + (part * TEMPERATURE_DEGREE_PER_LSB)
+		// const temperatureC = msb + ((lsb >> 6) * TEMPERATURE_DEGREE_PER_LSB)
 
 		return { temperatureC }
 	}
@@ -267,8 +271,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a2m2 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a2m2 === BIT_SET
 
-		const minutes = Converter.decodeMinutes(buffer)
+		const minutes = any ?
+			{ minutes: null } :
+			Converter.decodeMinutes(buffer)
 
 		return {
 			a2m2,
@@ -282,8 +289,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a2m3 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a2m3 === BIT_SET
 
-		const hours = Converter.decodeHours(buffer)
+		const hours = any ?
+			{ hours: null } :
+			Converter.decodeHours(buffer)
 
 		return {
 			a2m3,
@@ -297,8 +307,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a2m4 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a2m4 === BIT_SET
 
-		const dayDate = Converter.decodeDayDate(buffer)
+		const dayDate = any ?
+			{ day: null, date: null, dayOfMonth: true, dayOfWeek: false } :
+			Converter.decodeDayDate(buffer)
 
 		return {
 			a2m4,
@@ -311,15 +324,11 @@ export class Converter {
 			new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength) :
 			new Uint8Array(buffer)
 
-		const rate = 0
-
 		const minutes = Converter.decodeAlarm2Minutes(u8.subarray(0, 1))
 		const hours = Converter.decodeAlarm2Hours(u8.subarray(1, 2))
 		const dayDate = Converter.decodeAlarm2DayDate(u8.subarray(2, 3))
 
-
 		return {
-			rate,
 			...minutes,
 			...hours,
 			...dayDate,
@@ -584,11 +593,20 @@ export class Converter {
 	}
 
 	static encodeAlarm2(alarm2, twelveHourMode, into) {
+		const { minutes, hours, day, date } = alarm2
+
 		const mode12 = twelveHourMode ?? false
 
-		// todo
+		const buffer = (into !== undefined) ?
+			new Uint8Array(into.buffer, into.byteOffset, REGISTER_BLOCKS.ALARM_2.LENGTH) :
+			new Uint8Array(REGISTER_BLOCKS.ALARM_2.LENGTH)
 
-		return Uint8Array.from([ 0x00, 0, 0 ]).buffer
+		Converter.encodeMinutes(minutes, buffer.subarray(0, 1))
+		Converter.encodeHours(hours, mode12, buffer.subarray(1, 2))
+		if(day !== undefined) { Converter.encodeDay(day, buffer.subarray(2, 3)) }
+		else if(date !== undefined) { Converter.encodeDate(date, buffer.subarray(2, 3)) }
+
+		return buffer.buffer
 	}
 
 	static encodeAgingOffset(offset) {

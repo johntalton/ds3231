@@ -93,7 +93,8 @@ describe('DS3231', () => {
   it('getAlarm2', async () => {
     const device = DS3231.from(bufferBus([
       0b1000_0100,
-      0b0000_0001
+      0b0000_0011,
+      0b0000_0000
     ]))
 		const alarm2 = await device.getAlarm2()
     expect(alarm2).to.deep.equal({
@@ -103,10 +104,9 @@ describe('DS3231', () => {
       date: 0,
       dayOfMonth: true,
       dayOfWeek: false,
-      hours: 1,
-      minutes: 4,
+      hours: 3,
+      minutes: null,
       pm: false,
-      rate: 0,
       twelveHourMode: false
     })
   })
