@@ -7,13 +7,13 @@ export class DS3231 {
 
 	constructor(aBus) { this.#aBus = aBus }
 
-	async setTime(time) { return Common.setTime(this.#aBus, time) }
+	async setTime(time, twelveHourMode = false) { return Common.setTime(this.#aBus, time, twelveHourMode) }
 	async getTime() { return Common.getTime(this.#aBus) }
 
-	async setAlarm1(alarm) { return Common.setAlarm1(this.#aBus, alarm) }
+	async setAlarm1(alarm, twelveHourMode = false) { return Common.setAlarm1(this.#aBus, alarm, twelveHourMode) }
 	async getAlarm1() { return Common.getAlarm1(this.#aBus) }
 
-	async setAlarm2(alarm) { return Common.setAlarm2(this.#aBus, alarm) }
+	async setAlarm2(alarm, twelveHourMode = false) { return Common.setAlarm2(this.#aBus, alarm, twelveHourMode) }
 	async getAlarm2() { return Common.getAlarm2(this.#aBus) }
 
 	async setControl(control) { return Common.setControl(this.#aBus, control) }

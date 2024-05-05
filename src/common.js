@@ -24,8 +24,8 @@ export class Common {
     return Converter.decodeAlarm1(buffer)
   }
 
-  static async setAlarm1(aBus, alarm) {
-    const buffer = Converter.encodeAlarm1(alarm)
+  static async setAlarm1(aBus, alarm, twelveHourMode = false) {
+    const buffer = Converter.encodeAlarm1(alarm, twelveHourMode)
     return aBus.writeI2cBlock(REGISTER_BLOCKS.ALARM_1.START, buffer)
   }
 
@@ -37,8 +37,8 @@ export class Common {
     return Converter.decodeAlarm2(buffer)
   }
 
-  static async setAlarm2(aBus, alarm) {
-    const buffer = Converter.encodeAlarm2(alarm)
+  static async setAlarm2(aBus, alarm, twelveHourMode = false) {
+    const buffer = Converter.encodeAlarm2(alarm, twelveHourMode)
     return aBus.writeI2cBlock(REGISTER_BLOCKS.ALARM_2.START, buffer)
   }
 

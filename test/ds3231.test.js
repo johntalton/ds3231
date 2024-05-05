@@ -174,19 +174,58 @@ describe('DS3231', () => {
     expect(u8[0]).to.equal(0b0000_1011)
   })
 
-  it('setAlarm1', async () => {
+  it('setAlarm1 24 hour one per second', async () => {
 		const bus = bufferBus([ ])
 		const device = DS3231.from(bus)
 		device.setAlarm1({
-
-    })
+      seconds: null,
+      minutes: null,
+      hours: null,
+      date: null
+    }, false)
 
     const u8 = new Uint8Array(bus.buffer)
     expect(u8.byteLength).to.equal(4)
-    expect(u8[0]).to.equal(0b0000_0000)
-    expect(u8[1]).to.equal(0b0000_0000)
-    expect(u8[2]).to.equal(0b0000_0000)
-    expect(u8[3]).to.equal(0b0000_0000)
+    expect(u8[0]).to.equal(0b1000_0000)
+    expect(u8[1]).to.equal(0b1000_0000)
+    expect(u8[2]).to.equal(0b1000_0000)
+    expect(u8[3]).to.equal(0b1000_0000)
+  })
+
+  it('setAlarm1 24 hour when second match', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setAlarm1({
+      seconds: 30,
+      minutes: null,
+      hours: null,
+      date: null
+    }, false)
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8.byteLength).to.equal(4)
+    expect(u8[0]).to.equal(0b0011_0000)
+    expect(u8[1]).to.equal(0b1000_0000)
+    expect(u8[2]).to.equal(0b1000_0000)
+    expect(u8[3]).to.equal(0b1000_0000)
+  })
+
+  it('setAlarm1 24 hour when date, hours, minutes, and seconds match', async () => {
+		const bus = bufferBus([ ])
+		const device = DS3231.from(bus)
+		device.setAlarm1({
+      seconds: 30,
+      minutes: 2,
+      hours: 1,
+      date: 15
+    }, false)
+
+    const u8 = new Uint8Array(bus.buffer)
+    expect(u8.byteLength).to.equal(4)
+    expect(u8[0]).to.equal(0b0011_0000)
+    expect(u8[1]).to.equal(0b0000_0010)
+    expect(u8[2]).to.equal(0b0000_0001)
+    expect(u8[3]).to.equal(0b0001_0101)
   })
 
   it('setAlarm2', async () => {

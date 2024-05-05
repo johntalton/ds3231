@@ -193,8 +193,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a1m3 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a1m3 === BIT_SET
 
-		const hours = Converter.decodeHours(buffer)
+		const hours = any ?
+			{ hours: null } :
+			Converter.decodeHours(buffer)
 
 		return {
 			a1m3,
@@ -228,8 +231,11 @@ export class Converter {
 			new Uint8Array(buffer)
 
 		const a1m4 = BitSmush.extractBits(u8[0], 7, 1)
+		const any = a1m4 === BIT_SET
 
-		const dayDate = Converter.decodeDayDate(buffer)
+		const dayDate = any ?
+			{ day: null, date: null, dayOfMonth: true, dayOfWeek: false } :
+			Converter.decodeDayDate(buffer)
 
 		return {
 			a1m4,
@@ -560,11 +566,21 @@ export class Converter {
 	}
 
 	static encodeAlarm1(alarm1, twelveHourMode, into) {
+		const { seconds, minutes, hours, day, date } = alarm1
+
 		const mode12 = twelveHourMode ?? false
 
-		// todo
+		const buffer = (into !== undefined) ?
+			new Uint8Array(into.buffer, into.byteOffset, REGISTER_BLOCKS.ALARM_1.LENGTH) :
+			new Uint8Array(REGISTER_BLOCKS.ALARM_1.LENGTH)
 
-		return Uint8Array.from([ 0, 0, 0, 0 ]).buffer
+		Converter.encodeSeconds(seconds, buffer.subarray(0, 1))
+		Converter.encodeMinutes(minutes, buffer.subarray(1, 2))
+		Converter.encodeHours(hours, mode12, buffer.subarray(2, 3))
+		if(day !== undefined) { Converter.encodeDay(day, buffer.subarray(3, 4)) }
+		else if(date !== undefined) { Converter.encodeDate(date, buffer.subarray(3, 4)) }
+
+		return buffer.buffer
 	}
 
 	static encodeAlarm2(alarm2, twelveHourMode, into) {
