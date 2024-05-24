@@ -5,7 +5,8 @@ import {
 	TEMPERATURE_DEGREE_PER_LSB,
 	FREQUENCIES_KHZ,
 	BIT_SET, BIT_UNSET,
-	LENGTH_ONE_BYTE
+	LENGTH_ONE_BYTE,
+	DEFAULT_FREQUENCY_KHZ
 } from './defs.js'
 
 export const TEN = 10
@@ -397,17 +398,28 @@ export class Converter {
 		const {
 			enableAlarm1 = false,
 			enableAlarm2 = false,
-			enableOscillatorOnBatteryBackup = true
+
+			enableSquareWave = false,
+			squareWaveFrequencyKHz = DEFAULT_FREQUENCY_KHZ,
+
+			enableOscillatorOnBatteryBackup = true,
+			enableSquareWaveOnBatteryBackup = false
 		} = control
 
 		const a1ie = enableAlarm1 ? BIT_SET : BIT_UNSET
 		const a2ie = enableAlarm2 ? BIT_SET : BIT_UNSET
-		const intcn = BIT_SET
+		const rs1 =	(
+			(FREQUENCIES_KHZ[BIT_UNSET][BIT_SET] === squareWaveFrequencyKHz) ||
+			(FREQUENCIES_KHZ[BIT_SET][BIT_SET] === squareWaveFrequencyKHz)
+		) ? BIT_SET : BIT_UNSET
+		const rs2 = FREQUENCIES_KHZ[BIT_SET].includes(squareWaveFrequencyKHz) ? BIT_SET : BIT_UNSET
+		const intcn = !enableSquareWave ? BIT_SET : BIT_UNSET
 		const eosc = !enableOscillatorOnBatteryBackup ? BIT_SET : BIT_UNSET
+		const bbsqw = enableSquareWaveOnBatteryBackup ? BIT_SET : BIT_UNSET
 
 		const controlByte = BitSmush.smushBits(
-			[[7, 1], [2, 1], [1, 1], [0, 1]],
-			[ eosc, intcn, a2ie, a1ie ])
+			[[7, 1], [6, 1], [4, 1], [3, 1], [2, 1], [1, 1], [0, 1]],
+			[ eosc, bbsqw, rs2, rs1, intcn, a2ie, a1ie ])
 
 		return Uint8Array.from([ controlByte ]).buffer
 	}
