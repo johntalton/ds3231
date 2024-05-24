@@ -15,7 +15,7 @@ export const FREQUENCIES_KHZ = [
   [4.096, 8.192]
 ]
 
-export const DEFAULT_FREQUENCY_KHZ = 8.192
+export const DEFAULT_FREQUENCY_KHZ = FREQUENCIES_KHZ[0][0]
 
 export const BIT_SET = 1
 export const BIT_UNSET = 0
