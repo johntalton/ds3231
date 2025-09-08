@@ -10,7 +10,7 @@
   ],
   "scripts": {
     "test": "node --test",
-    "coverage": "c8 --check-coverage --src ./src --reporter text --reporter lcov --all npm --silent run test -- --no-parallel --reporter min"
+    "coverage": "c8 --check-coverage --src ./src --reporter text --reporter lcov --all npm --silent run test"
   },
   "devDependencies": {
     "c8": "^10.1.3"
