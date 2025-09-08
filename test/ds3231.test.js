@@ -1,5 +1,5 @@
-import { describe, it } from 'mocha'
-import { expect } from 'chai'
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { DS3231 } from '@johntalton/ds3231'
 
@@ -26,7 +26,7 @@ describe('DS3231', () => {
       // 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0
     ]))
 		const time = await device.getTime()
-		expect(time).deep.equal({
+		assert.deepEqual(time, {
       seconds: 0,
       minutes: 0,
       hours: 0,
@@ -44,7 +44,7 @@ describe('DS3231', () => {
   it('getControl', async () => {
     const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
 		const control = await device.getControl()
-    expect(control).to.deep.equal({
+    assert.deepEqual(control, {
       alarm1Enabled: false,
       alarm2Enabled: false,
       convertTemperatureEnabled: false,
@@ -58,7 +58,7 @@ describe('DS3231', () => {
   it('getStatus', async () => {
     const device = DS3231.from(bufferBus([ 0b1000_0100 ]))
 		const status = await device.getStatus()
-    expect(status).to.deep.equal({
+    assert.deepEqual(status, {
       oscillatorStoppedFlag: true,
       output32kHzEnabled: false,
       busyFlag: true,
@@ -74,7 +74,7 @@ describe('DS3231', () => {
       0b0000_0100
     ]))
 		const alarm1 = await device.getAlarm1()
-    expect(alarm1).to.deep.equal({
+    assert.deepEqual(alarm1, {
       a1m1: 1,
       a1m2: 1,
       a1m3: 0,
@@ -97,7 +97,7 @@ describe('DS3231', () => {
       0b0000_0000
     ]))
 		const alarm2 = await device.getAlarm2()
-    expect(alarm2).to.deep.equal({
+    assert.deepEqual(alarm2, {
       a2m2: 1,
       a2m3: 0,
       a2m4: 0,
@@ -114,7 +114,7 @@ describe('DS3231', () => {
   it('getAgingOffset', async () => {
     const device = DS3231.from(bufferBus([ 0b1111_1100 ]))
 		const offset = await device.getAgingOffset()
-    expect(offset).to.deep.equal({
+    assert.deepEqual(offset, {
       offset: -4
     })
   })
@@ -125,7 +125,7 @@ describe('DS3231', () => {
       0b1100_0000
     ]))
 		const temperature = await device.getTemperature()
-    expect(temperature).to.deep.equal({
+    assert.deepEqual(temperature, {
       temperatureC: 37.75
     })
   })
@@ -140,11 +140,11 @@ describe('DS3231', () => {
       seconds: 37
     })
 
-    expect(bus.buffer).to.be.instanceOf(ArrayBuffer)
+    assert.ok(bus.buffer instanceof ArrayBuffer)
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8[0]).to.equal(0b0011_0111)
+    assert.equal(u8[0], 0b0011_0111)
 
-    expect(u8[6]).to.equal(0b0000_0000)
+    assert.equal(u8[6], 0b0000_0000)
 	})
 
   it('setControl', async () => {
@@ -157,7 +157,7 @@ describe('DS3231', () => {
     })
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8[0]).to.equal(0b1000_0101)
+    assert.equal(u8[0], 0b1000_0101)
   })
 
   it('setStatus', async () => {
@@ -171,7 +171,7 @@ describe('DS3231', () => {
     })
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8[0]).to.equal(0b0000_1011)
+    assert.equal(u8[0], 0b0000_1011)
   })
 
   it('setAlarm1 24 hour one per second', async () => {
@@ -185,11 +185,11 @@ describe('DS3231', () => {
     }, false)
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8.byteLength).to.equal(4)
-    expect(u8[0]).to.equal(0b1000_0000)
-    expect(u8[1]).to.equal(0b1000_0000)
-    expect(u8[2]).to.equal(0b1000_0000)
-    expect(u8[3]).to.equal(0b1000_0000)
+    assert.equal(u8.byteLength, 4)
+    assert.equal(u8[0], 0b1000_0000)
+    assert.equal(u8[1], 0b1000_0000)
+    assert.equal(u8[2], 0b1000_0000)
+    assert.equal(u8[3], 0b1000_0000)
   })
 
   it('setAlarm1 24 hour when second match', async () => {
@@ -203,11 +203,11 @@ describe('DS3231', () => {
     }, false)
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8.byteLength).to.equal(4)
-    expect(u8[0]).to.equal(0b0011_0000)
-    expect(u8[1]).to.equal(0b1000_0000)
-    expect(u8[2]).to.equal(0b1000_0000)
-    expect(u8[3]).to.equal(0b1000_0000)
+    assert.equal(u8.byteLength, 4)
+    assert.equal(u8[0], 0b0011_0000)
+    assert.equal(u8[1], 0b1000_0000)
+    assert.equal(u8[2], 0b1000_0000)
+    assert.equal(u8[3], 0b1000_0000)
   })
 
   it('setAlarm1 24 hour when date, hours, minutes, and seconds match', async () => {
@@ -221,11 +221,11 @@ describe('DS3231', () => {
     }, false)
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8.byteLength).to.equal(4)
-    expect(u8[0]).to.equal(0b0011_0000)
-    expect(u8[1]).to.equal(0b0000_0010)
-    expect(u8[2]).to.equal(0b0000_0001)
-    expect(u8[3]).to.equal(0b0001_0101)
+    assert.equal(u8.byteLength, 4)
+    assert.equal(u8[0], 0b0011_0000)
+    assert.equal(u8[1], 0b0000_0010)
+    assert.equal(u8[2], 0b0000_0001)
+    assert.equal(u8[3], 0b0001_0101)
   })
 
   it('setAlarm2', async () => {
@@ -236,10 +236,10 @@ describe('DS3231', () => {
     })
 
     const u8 = new Uint8Array(bus.buffer)
-    expect(u8.byteLength).to.equal(3)
-    expect(u8[0]).to.equal(0b0000_0000)
-    expect(u8[1]).to.equal(0b0000_0000)
-    expect(u8[2]).to.equal(0b0000_0000)
+    assert.equal(u8.byteLength, 3)
+    assert.equal(u8[0], 0b0000_0000)
+    assert.equal(u8[1], 0b0000_0000)
+    assert.equal(u8[2], 0b0000_0000)
   })
 
   it('setAgingOffset', async () => {
@@ -250,7 +250,7 @@ describe('DS3231', () => {
     })
 
     const i8 = new Int8Array(bus.buffer)
-    expect(i8.byteLength).to.equal(1)
-    expect(i8[0]).to.equal(0b0000_0000)
+    assert.equal(i8.byteLength, 1)
+    assert.equal(i8[0], 0b0000_0000)
   })
 })

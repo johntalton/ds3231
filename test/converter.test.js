@@ -1,5 +1,5 @@
-import { describe, it } from 'mocha'
-import { expect } from 'chai'
+import { describe, it } from 'node:test'
+import assert from 'node:assert/strict'
 
 import { Converter } from '@johntalton/ds3231'
 
@@ -8,13 +8,13 @@ describe('Converter', () => {
 		it('decodeTemperature', () => {
 			const buffer = Uint8Array.from([0x00, 0x01 << 6])
 			const result = Converter.decodeTemperature(buffer)
-			expect(result).to.deep.equal({ temperatureC: .25 })
+			assert.deepEqual(result, { temperatureC: .25 })
 		})
 
 		it('decodeTemperature buffer', () => {
 			const buffer = Uint8Array.from([0x0A, 0x00 ])
 			const result = Converter.decodeTemperature(buffer.buffer)
-			expect(result).to.deep.equal({ temperatureC: 10 })
+			assert.deepEqual(result, { temperatureC: 10 })
 		})
 	})
 
@@ -22,115 +22,115 @@ describe('Converter', () => {
 		it('encodesSeconds', () => {
 			const buffer = Converter.encodeSeconds(42)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0100_0010)
+			assert.equal(u8[0], 0b0100_0010)
 		})
 
 		it('encodesSeconds any', () => {
 			const buffer = Converter.encodeSeconds(null)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b1000_0000)
+			assert.equal(u8[0], 0b1000_0000)
 		})
 
 		it('encodesSeconds offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeSeconds(13, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0001_0011)
+			assert.equal(buffer[2], 0b0001_0011)
 		})
 
 		it('encodesMinutes', () => {
 			const buffer = Converter.encodeMinutes(37)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0011_0111)
+			assert.equal(u8[0], 0b0011_0111)
 		})
 
 		it('encodesMinutes any', () => {
 			const buffer = Converter.encodeMinutes(null)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b1000_0000)
+			assert.equal(u8[0], 0b1000_0000)
 		})
 
 		it('encodesMinutes offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeMinutes(13, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0001_0011)
+			assert.equal(buffer[2], 0b0001_0011)
 		})
 
 		it('encodesHours 12 hour AM', () => {
 			const buffer = Converter.encodeHours(9, true)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0100_1001)
+			assert.equal(u8[0], 0b0100_1001)
 		})
 
 		it('encodesHours 12 hour PM', () => {
 			const buffer = Converter.encodeHours(21, true)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0110_1001)
+			assert.equal(u8[0], 0b0110_1001)
 		})
 
 		it('encodesHours 12 hour any', () => {
 			const buffer = Converter.encodeHours(null, true)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b1000_0000)
+			assert.equal(u8[0], 0b1000_0000)
 		})
 
 		it('encodesHours 24 hour', () => {
 			const buffer = Converter.encodeHours(37, false)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0011_0111)
+			assert.equal(u8[0], 0b0011_0111)
 		})
 
 		it('encodesHours 24 hour any', () => {
 			const buffer = Converter.encodeHours(null, false)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b1000_0000)
+			assert.equal(u8[0], 0b1000_0000)
 		})
 
 		it('encodesHours 24 hour offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeHours(13, false, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0001_0011)
+			assert.equal(buffer[2], 0b0001_0011)
 		})
 
 		it('encodeDate', () => {
 			const buffer = Converter.encodeDate(37)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0011_0111)
+			assert.equal(u8[0], 0b0011_0111)
 		})
 
 		it('encodeDate any', () => {
 			const buffer = Converter.encodeDate(null)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b1000_0000)
+			assert.equal(u8[0], 0b1000_0000)
 		})
 
 		it('encodeDate offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeDate(29, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0010_1001)
+			assert.equal(buffer[2], 0b0010_1001)
 		})
 
 		it('encodeMonth', () => {
 			const buffer = Converter.encodeMonth(10)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0001_0000)
+			assert.equal(u8[0], 0b0001_0000)
 		})
 
 		it('encodeMonth offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeMonth(11, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0001_0001)
+			assert.equal(buffer[2], 0b0001_0001)
 		})
 
 		it('encodeYear', () => {
 			const buffer = Converter.encodeYear(69)
 			const u8 = new Uint8Array(buffer)
-			expect(u8[0]).to.equal(0b0110_1001)
+			assert.equal(u8[0], 0b0110_1001)
 		})
 
 		it('encodeYear offset into', () => {
 			const buffer = new Uint8Array(3)
 			Converter.encodeYear(42, buffer.subarray(2, 3))
-			expect(buffer[2]).to.equal(0b0100_0010)
+			assert.equal(buffer[2], 0b0100_0010)
 		})
 
 		it('encodeTime', () => {
@@ -144,14 +144,14 @@ describe('Converter', () => {
 				year: 91
 			}, false)
 			const u8 = new Uint8Array(buffer)
-			expect(u8.byteLength).to.equal(7)
-			expect(u8[0]).to.equal(0b0011_0111)
-			expect(u8[1]).to.equal(0b0001_0011)
-			expect(u8[2]).to.equal(0b0010_0010)
-			expect(u8[3]).to.equal(0b0000_0001)
-			expect(u8[4]).to.equal(0b0001_0001)
-			expect(u8[5]).to.equal(0b0001_0000)
-			expect(u8[6]).to.equal(0b1001_0001)
+			assert.equal(u8.byteLength, 7)
+			assert.equal(u8[0], 0b0011_0111)
+			assert.equal(u8[1], 0b0001_0011)
+			assert.equal(u8[2], 0b0010_0010)
+			assert.equal(u8[3], 0b0000_0001)
+			assert.equal(u8[4], 0b0001_0001)
+			assert.equal(u8[5], 0b0001_0000)
+			assert.equal(u8[6], 0b1001_0001)
 		})
 
 		it('encodeTime offset into', () => {
@@ -166,21 +166,21 @@ describe('Converter', () => {
 				year: 91
 			}, false, into.subarray(3, 11))
 
-			expect(buffer).to.equal(into.buffer)
-			expect(buffer.byteLength).to.equal(30)
+			assert.equal(buffer, into.buffer)
+			assert.equal(buffer.byteLength, 30)
 
 			const u8 = new Uint8Array(into.buffer)
 
-			expect(u8[3]).to.equal(0b0011_0111)
+			assert.equal(u8[3], 0b0011_0111)
 			//
 			//
 			//
 			//
 			//
-			expect(u8[9]).to.equal(0b1001_0001)
+			assert.equal(u8[9], 0b1001_0001)
 
-			// expect(u8[0]).to.equal(0b0000_0000)
-			// expect(u8[1]).to.equal(0b0000_0000)
+			// assert.equal(u8[0], 0b0000_0000)
+			// assert.equal(u8[1], 0b0000_0000)
 		})
 
 		// -----
@@ -188,77 +188,77 @@ describe('Converter', () => {
 		it('decodeSeconds', () => {
 			const buffer = Uint8Array.from([ 0b0010_0011 ])
 			const { seconds } = Converter.decodeSeconds(buffer)
-			expect(seconds).to.equal(23)
+			assert.equal(seconds, 23)
 		})
 
 		it('decodeMinutes', () => {
 			const buffer = Uint8Array.from([ 0b0010_0011 ])
 			const { minutes } = Converter.decodeMinutes(buffer)
-			expect(minutes).to.equal(23)
+			assert.equal(minutes, 23)
 		})
 
 		it('decodeHours 12 hour AM', () => {
 			const buffer = Uint8Array.from([ 0b0101_0001 ])
 			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
-			expect(twelveHourMode).to.be.true
-			expect(pm).to.be.false
-			expect(hours).to.equal(11)
+			assert.ok(twelveHourMode)
+			assert.ok(!pm)
+			assert.equal(hours, 11)
 		})
 
 		it('decodeHours 12 hour PM', () => {
 			const buffer = Uint8Array.from([ 0b0111_0001 ])
 			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
-			expect(twelveHourMode).to.be.true
-			expect(pm).to.be.true
-			expect(hours).to.equal(11)
+			assert.ok(twelveHourMode)
+			assert.ok(pm)
+			assert.equal(hours, 11)
 		})
 
 		it('decodeHours 24 hour', () => {
 			const buffer = Uint8Array.from([ 0b0001_0010 ])
 			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
-			expect(twelveHourMode).to.be.false
-			expect(pm).to.be.false
-			expect(hours).to.equal(12)
+			assert.ok(!twelveHourMode)
+			assert.ok(!pm)
+			assert.equal(hours, 12)
 		})
 
 		it('decodeHours 24 hour afternoon', () => {
 			const buffer = Uint8Array.from([ 0b0001_0110 ])
 			const { twelveHourMode, hours, pm } = Converter.decodeHours(buffer)
-			expect(twelveHourMode).to.be.false
-			expect(pm).to.be.true
-			expect(hours).to.equal(16)
+			assert.ok(!twelveHourMode)
+			assert.ok(pm)
+			assert.equal(hours, 16)
 		})
 
 		it('decodeDay', () => {
 			const buffer = Uint8Array.from([ 0b0000_0011 ])
 			const { day } = Converter.decodeDay(buffer)
-			expect(day).to.equal(3)
+			assert.equal(day, 3)
 		})
 
 		it('decodeDate', () => {
 			const buffer = Uint8Array.from([ 0b0010_0011 ])
 			const { date } = Converter.decodeDate(buffer)
-			expect(date).to.equal(23)
+			assert.equal(date, 23)
 		})
 
 		it('decodeMonthCentury', () => {
 			const buffer = Uint8Array.from([ 0b0001_0010 ])
 			const { month, century } = Converter.decodeMonthCentury(buffer)
-			expect(month).to.equal(12)
-			expect(century).to.equal(0)
+			assert.equal(month, 12)
+			assert.equal(century, 0)
 		})
 
 		it('decodeMonthCentury century flag', () => {
 			const buffer = Uint8Array.from([ 0b1001_0010 ])
 			const { month, century } = Converter.decodeMonthCentury(buffer)
-			expect(month).to.equal(12)
-			expect(century).to.equal(1)
+			assert.equal(month, 12)
+			assert.equal(century, 1)
 		})
 
 		it('decodeYear', () => {
 			const buffer = Uint8Array.from([ 0b1001_0011 ])
 			const { year } = Converter.decodeYear(buffer)
-			expect(year).to.equal(93)
+			assert.equal(year, 93)
 		})
 
 		it('decodesTime', () => {
@@ -282,8 +282,8 @@ describe('Converter', () => {
 				date,
 				hours, minutes, seconds)
 
-			expect(dateMilli).to.equal(7068083003000)
-			expect(new Date(dateMilli).toISOString()).to.equal('2193-12-23T12:23:23.000Z')
+			assert.equal(dateMilli, 7068083003000)
+			assert.equal(new Date(dateMilli).toISOString(), '2193-12-23T12:23:23.000Z')
 		})
 	})
 
@@ -308,11 +308,11 @@ describe('Converter', () => {
 				squareWaveFrequencyKHz
 			} = Converter.decodeControl(buffer)
 
-			expect(alarm1Enabled).to.be.false
-			expect(alarm2Enabled).to.be.true
-			expect(squareWaveEnabled).to.be.false
+			assert.ok(!alarm1Enabled)
+			assert.ok(alarm2Enabled)
+			assert.ok(!squareWaveEnabled)
 
-			expect(squareWaveFrequencyKHz).to.equal(8.192)
+			assert.equal(squareWaveFrequencyKHz, 8.192)
 		})
 
 		it('decodeControl buffer', () => {
@@ -327,11 +327,11 @@ describe('Converter', () => {
 				squareWaveFrequencyKHz
 			} = Converter.decodeControl(buffer.buffer)
 
-			expect(alarm1Enabled).to.be.true
-			expect(alarm2Enabled).to.be.false
-			expect(squareWaveEnabled).to.be.false
+			assert.ok(alarm1Enabled)
+			assert.ok(!alarm2Enabled)
+			assert.ok(!squareWaveEnabled)
 
-			expect(squareWaveFrequencyKHz).to.equal(1.024)
+			assert.equal(squareWaveFrequencyKHz, 1.024)
 		})
 
 
@@ -345,11 +345,11 @@ describe('Converter', () => {
 				alarm2Flag
 			} = Converter.decodeStatus(buffer)
 
-			expect(oscillatorStoppedFlag).to.be.true
-			expect(output32kHzEnabled).to.be.false
-			expect(busyFlag).to.be.true
-			expect(alarm1Flag).to.be.false
-			expect(alarm2Flag).to.be.true
+			assert.ok(oscillatorStoppedFlag)
+			assert.ok(!output32kHzEnabled)
+			assert.ok(busyFlag)
+			assert.ok(!alarm1Flag)
+			assert.ok(alarm2Flag)
 		})
 
 		it('decodeStatus buffer', () => {
@@ -362,11 +362,11 @@ describe('Converter', () => {
 				alarm2Flag
 			} = Converter.decodeStatus(buffer.buffer)
 
-			expect(oscillatorStoppedFlag).to.be.true
-			expect(output32kHzEnabled).to.be.false
-			expect(busyFlag).to.be.true
-			expect(alarm1Flag).to.be.false
-			expect(alarm2Flag).to.be.true
+			assert.ok(oscillatorStoppedFlag)
+			assert.ok(!output32kHzEnabled)
+			assert.ok(busyFlag)
+			assert.ok(!alarm1Flag)
+			assert.ok(alarm2Flag)
 		})
 
 
@@ -374,10 +374,10 @@ describe('Converter', () => {
 			const buffer = Converter.encodeControl({
 				enableAlarm2: true
 			})
-			expect(buffer).to.be.instanceOf(ArrayBuffer)
-			expect(buffer.byteLength).to.equal(1)
+			assert.ok(buffer instanceof ArrayBuffer)
+			assert.equal(buffer.byteLength, 1)
 			const result = new Uint8Array(buffer)
-			expect(result[0]).to.equal(0b0000_0110)
+			assert.equal(result[0], 0b0000_0110)
 		})
 
 		it('encodeControl other flags', () => {
@@ -385,10 +385,10 @@ describe('Converter', () => {
 				enableAlarm1: true,
 				enableOscillatorOnBatteryBackup: false
 			})
-			expect(buffer).to.be.instanceOf(ArrayBuffer)
-			expect(buffer.byteLength).to.equal(1)
+			assert.ok(buffer instanceof ArrayBuffer)
+			assert.equal(buffer.byteLength, 1)
 			const result = new Uint8Array(buffer)
-			expect(result[0]).to.equal(0b1000_0101)
+			assert.equal(result[0], 0b1000_0101)
 		})
 
 		it('encodeStatus', () => {
@@ -396,10 +396,10 @@ describe('Converter', () => {
 				clearOscillatorStoppedFlag: false,
 				clearAlarm1Flag: true
 			})
-			expect(buffer).to.be.instanceOf(ArrayBuffer)
-			expect(buffer.byteLength).to.equal(1)
+			assert.ok(buffer instanceof ArrayBuffer)
+			assert.equal(buffer.byteLength, 1)
 			const result = new Uint8Array(buffer)
-			expect(result[0]).to.equal(0b1000_0001)
+			assert.equal(result[0], 0b1000_0001)
 		})
 
 		it('encodeStatus alt flags', () => {
@@ -409,10 +409,10 @@ describe('Converter', () => {
 				clearAlarm2Flag: true,
 				enable32kHz: true
 			})
-			expect(buffer).to.be.instanceOf(ArrayBuffer)
-			expect(buffer.byteLength).to.equal(1)
+			assert.ok(buffer instanceof ArrayBuffer)
+			assert.equal(buffer.byteLength, 1)
 			const result = new Uint8Array(buffer)
-			expect(result[0]).to.equal(0b0000_1010)
+			assert.equal(result[0], 0b0000_1010)
 		})
 	})
 })

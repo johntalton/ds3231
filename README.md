@@ -14,6 +14,7 @@ Real Time Clock I²C driver library.
 ### `from`
 
 ```javascript
+import { I2CAddressedBus } from '@johntalton/and-other-delights'
 import { DS3231, CENTURY } from '@johntalton/ds3231'
 
 const bus = /* byob */
